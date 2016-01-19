@@ -92,7 +92,7 @@ function isEmpty($var){
 }
 
 function makeAccount($name,$currency,$status){
-    $zAccount = new Zuora_Account();
+    $zAccount = new Zuora\Soap\Account();
     $zAccount->AllowInvoiceEdit = 1;
     $zAccount->AutoPay = 0;
     $zAccount->Batch = 'Batch1';
@@ -108,7 +108,7 @@ function makeAccount($name,$currency,$status){
 }
 function makeContact($firstName,$lastName,$address1,$address2,$city,$state,$country,$postalCode,$workMail,$workPhone,$accountId=null){
 	
-	  $zBillToContact = new Zuora_Contact();
+	  $zBillToContact = new Zuora\Soap\Contact();
     
     $zBillToContact->FirstName = $firstName;
     $zBillToContact->LastName = $lastName;    
@@ -125,7 +125,7 @@ function makeContact($firstName,$lastName,$address1,$address2,$city,$state,$coun
 		return  $zBillToContact;
 }
 function makePaymentMethod($creditCardHolderName, $address1,$address2, $city, $state, $country, $postalCode, $creditCardType, $creditCardNumber, $creditCardExpirationMonth, $creditCardExpirationYear,$accountId=null){
-	  $zPaymentMethod = new Zuora_PaymentMethod();
+	  $zPaymentMethod = new Zuora\Soap\PaymentMethod();
     $zPaymentMethod->AccountId = $accountId;
     
     $zPaymentMethod->CreditCardAddress1 = $address1;
@@ -146,7 +146,7 @@ function makePaymentMethod($creditCardHolderName, $address1,$address2, $city, $s
 function makeSubscription($subscriptionName, $subscriptionNotes){
 	  $date = date('Y-m-d\TH:i:s',time());
 	  
-	  $zSubscription = new Zuora_Subscription();
+	  $zSubscription = new Zuora\Soap\Subscription();
 
     $zSubscription->Name = $subscriptionName;
 		$zSubscription->Notes = $subscriptionNotes;
@@ -166,23 +166,23 @@ function makeSubscription($subscriptionName, $subscriptionNotes){
 		return 	$zSubscription;
 }
 function setRatePlanData($zSubscriptionData,$chargeIds,$rateplancharges,$productRatePlanId){
-	  $zRatePlan = new Zuora_RatePlan();
+	  $zRatePlan = new Zuora\Soap\RatePlan();
     $zRatePlan->AmendmentType = 'NewProduct';
 
     $zRatePlan->ProductRatePlanId = $productRatePlanId;
-    $zRatePlanData = new Zuora_RatePlanData($zRatePlan);
+    $zRatePlanData = new Zuora\Soap\RatePlanData($zRatePlan);
     
     foreach($chargeIds as $cid){
     	foreach($rateplancharges as $rc){
     		if($rc->Id == $cid){
-		 			$rpc = new Zuora_RatePlanCharge();
+		 			$rpc = new Zuora\Soap\RatePlanCharge();
 			    $rpc->ProductRatePlanChargeId = $cid;
 			    if($rc->DefaultQuantity>0){			    
 			    	$rpc->Quantity =  1;
 			  	}
 			    $rpc->TriggerEvent ="ServiceActivation";
 			    
-			    $zPlanChargeData = new Zuora_RatePlanChargeData($rpc);
+			    $zPlanChargeData = new Zuora\Soap\RatePlanChargeData($rpc);
 			    
 			    
 			    $zRatePlanData->addRatePlanChargeData($zPlanChargeData);    			
@@ -195,7 +195,7 @@ function setRatePlanData($zSubscriptionData,$chargeIds,$rateplancharges,$product
 }
 
 function makeSubscriptionData($subscription,$chargeIds,$rateplancharges,$rateplanId){
-	 $zSubscriptionData = new Zuora_SubscriptionData($subscription);
+	 $zSubscriptionData = new Zuora\Soap\SubscriptionData($subscription);
    setRatePlanData($zSubscriptionData,$chargeIds,$rateplancharges,$rateplanId);
 	 return $zSubscriptionData;
 }	

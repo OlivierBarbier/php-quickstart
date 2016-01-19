@@ -29,7 +29,7 @@
 
 date_default_timezone_set('America/Los_Angeles');
 
-require_once '../lib/API.php';
+require_once 'vendor/autoload.php';
 require_once '../config.php';
 require_once '../functions.php';
 
@@ -77,7 +77,7 @@ $fieldsValue[$CreditCardPostalCode]     = getPostValue($CreditCardPostalCode,'92
 $config = new stdClass();
 $config->wsdl = "../".$wsdl;
 
-$instance = Zuora_API::getInstance($config);
+$instance = Zuora\Soap\API::getInstance($config);
 $instance->setQueryOptions($query_batch_size);
 
 # LOGIN
@@ -187,7 +187,7 @@ function subscribedata($instance,$chargeIds,$rateplancharges,$rateplanId){
    
    $zSubscriptionData =makeSubscriptionData($subscription,$chargeIds,$rateplancharges,$rateplanId);
    
-   $zSubscribeOptions = new Zuora_SubscribeOptions(false,false);
+   $zSubscribeOptions = new Zuora\Soap\SubscribeOptions(false,false);
    
    $result = $instance->subscribe($account, $contact, $paymentmethod, $zSubscriptionData,$zSubscribeOptions);
   

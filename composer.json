@@ -1,0 +1,5 @@
+{
+    "require": {
+        "olivierbarbier/zuora-soap-api": "dev-master"
+    }
+}

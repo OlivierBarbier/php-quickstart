@@ -31,7 +31,7 @@ ini_set("display_errors", 1);
 
 date_default_timezone_set('America/Los_Angeles');
 
-require_once 'lib/API.php';
+require_once 'vendor/autoload.php';
 require_once 'config.php';
 require_once 'functions.php';
 
@@ -40,7 +40,7 @@ $config->wsdl = $wsdl;
 
 $productName = '<your productName>';// to keep things simple ,you'd better create a product with flat-fee of one-time charge for testing. and turn off the "Require Customer Acceptance of Orders?" ,"Require Service Activation of Orders?" in the Default Subscription Settings.
 
-$instance = Zuora_API::getInstance($config);
+$instance = Zuora\Soap\API::getInstance($config);
 $instance->setQueryOptions($query_batch_size);
 
 # LOGIN
@@ -264,7 +264,7 @@ print "\nAccount Deleted: " . $msg;
 
 
 # useful for debugging responses
-# Zuora_Debug::dump($result);
+# Zuora\Soap\Debug::dump($result);
 
 die();
 
@@ -296,7 +296,7 @@ function createActiveAccount($instance, $name){
     $paymentMethodId = $result->result->Id;
 
     # Update Account w/ Bill To/Sold To; also specify as active
-    $zAccount = new Zuora_Account();
+    $zAccount = new Zuora\Soap\Account();
     $zAccount->Id = $accountId;
     $zAccount->Status = 'Active';
     $zAccount->BillToId = $contactId;
@@ -337,7 +337,7 @@ function subscribe($instance, $ProductRatePlan,$GeneratePayments=true,$GenerateI
 
     $zSubscriptionData = makeSubscriptionData($zSubscription,array(),array(),$ProductRatePlanId);
     
-    $zSubscribeOptions = new Zuora_SubscribeOptions($GenerateInvoice,$GeneratePayments);
+    $zSubscribeOptions = new Zuora\Soap\SubscribeOptions($GenerateInvoice,$GeneratePayments);
      
     $result = $instance->subscribe($zAccount, $zSubscriptionData,$zBillToContact, $zPaymentMethod, $zSubscribeOptions);
 
@@ -351,7 +351,7 @@ function subscribeWithExistingAccount($instance, $ProductRatePlan, $accountId,$G
     $ProductRatePlanId = $ProductRatePlan->Id;
 
     # SUBSCRIBE
-    $zAccount = new Zuora_Account();
+    $zAccount = new Zuora\Soap\Account();
     $zAccount->Id = $accountId;
 
     $zSubscription = makeSubscription((isset($subscriptionName)?$subscriptionName:"Name".time()),null);
@@ -359,7 +359,7 @@ function subscribeWithExistingAccount($instance, $ProductRatePlan, $accountId,$G
 		$zSubscriptionData = makeSubscriptionData($zSubscription,array(),array(),$ProductRatePlanId);
 
 
-    $zSubscribeOptions = new Zuora_SubscribeOptions($GenerateInvoice, $GeneratePayments);
+    $zSubscribeOptions = new Zuora\Soap\SubscribeOptions($GenerateInvoice, $GeneratePayments);
 
     $result = $instance->subscribeWithExistingAccount($zAccount, $zSubscriptionData, $zSubscribeOptions);
 
@@ -372,7 +372,7 @@ function uploadUsages($instance,$usages){
 	$zUsages = array();
 	
 	foreach($usages as $usage){
-		$zUsage = new Zuora_Usage();
+		$zUsage = new Zuora\Soap\Usage();
 		$zUsage->AccountId = $usage['AccountId'];
 		$zUsage->Quantity  = $usage['Quantity'];
 		$zUsage->StartDateTime = $usage['StartDateTime'];
@@ -389,7 +389,7 @@ function uploadUsages($instance,$usages){
 function generateInvoice($instance,$accountId,$invoiceDate,$targetDate){
 	$zInvoices = array();
 	
-	$invoice = new Zuora_Invoice();
+	$invoice = new Zuora\Soap\Invoice();
 	$invoice->AccountId = $accountId;
 	$invoice->InvoiceDate = $invoiceDate;
 	$invoice->TargetDate = $targetDate;
@@ -402,7 +402,7 @@ function generateInvoice($instance,$accountId,$invoiceDate,$targetDate){
 
 # post invoice
 function postInvoice($instance,$invoiceId){
-  $invoice = new Zuora_Invoice();
+  $invoice = new Zuora\Soap\Invoice();
 	$invoice->Id = $invoiceId;
 	$invoice->Status = 'Posted';
 	
@@ -424,7 +424,7 @@ function createAndApplyPayment($instance,$accountId){
  $invoiceId = $records[0]->Id;
  print "\nInvoice Balance Queried ($query): " . $records[0]->Id . "  " . $records[0]->Balance;
  
- $payment = new Zuora_Payment();
+ $payment = new Zuora\Soap\Payment();
  $payment->AccountId = $accountId;
  $payment->Amount = $amount;
  $payment->EffectiveDate = date('Y-m-d\TH:i:s');
@@ -438,7 +438,7 @@ function createAndApplyPayment($instance,$accountId){
  $success1 = $result->result->Success;
  $msg = "Payment: ".($success1 ? "Success" : $result->result->errors->Code . " (" . $result->result->errors->Message.")");
  
- $invoicePayment = new Zuora_InvoicePayment();
+ $invoicePayment = new Zuora\Soap\InvoicePayment();
  $invoicePayment->Amount = $amount;
  $invoicePayment->InvoiceId = $invoiceId;
  $invoicePayment->PaymentId = $paymentId;  
@@ -447,7 +447,7 @@ function createAndApplyPayment($instance,$accountId){
  $success2 = $result->result->Success;
  $msg .=" -> InvoicePayment: ". ($success2 ?  "Success" : $result->result->errors->Code . " (" . $result->result->errors->Message.")");
 
- $payment = new Zuora_Payment();
+ $payment = new Zuora\Soap\Payment();
  $payment->Id = $paymentId;
  $payment->Status = 'Processed';
  $result=$instance->update(array($payment));	
@@ -499,7 +499,7 @@ function getProductRatePlanCharges($instance,$productRatePlanId){
 function newProductAmendment($instance,$newProductName,$subscriptionId){
 	$date = date('Y-m-d\TH:i:s');
 	
-	$amendment = new Zuora_Amendment();
+	$amendment = new Zuora\Soap\Amendment();
 	$amendment->EffectiveDate = $date;
 	$amendment->Name = 'addproduct' . time();
 	$amendment->Status = 'Draft';
@@ -510,7 +510,7 @@ function newProductAmendment($instance,$newProductName,$subscriptionId){
 	
 	$amendmentId = $result -> result -> Id;
 	
-	$rateplan = new Zuora_RatePlan();
+	$rateplan = new Zuora\Soap\RatePlan();
 	$rateplan->AmendmentId = $amendmentId;
 	$rateplan->AmendmentType = 'NewProduct';
 	
@@ -519,7 +519,7 @@ function newProductAmendment($instance,$newProductName,$subscriptionId){
 	
 	$instance->create(array($rateplan));
 	
-	$amendment = new Zuora_Amendment();
+	$amendment = new Zuora\Soap\Amendment();
 	$amendment->Id = $amendmentId;
 	$amendment->ContractEffectiveDate = $date;
 	
@@ -532,7 +532,7 @@ function newProductAmendment($instance,$newProductName,$subscriptionId){
 function removeProductAmendment($instance,$ratePlanId,$subscriptionId){
 	$date = date('Y-m-d\TH:i:s');
 	
-	$amendment = new Zuora_Amendment();
+	$amendment = new Zuora\Soap\Amendment();
 	$amendment->EffectiveDate = $date;
 	$amendment->Name = 'removeproduct' . time();
 	$amendment->Status = 'Draft';
@@ -543,7 +543,7 @@ function removeProductAmendment($instance,$ratePlanId,$subscriptionId){
 	
 	$amendmentId = $result -> result -> Id;
 	
-	$rateplan = new Zuora_RatePlan();
+	$rateplan = new Zuora\Soap\RatePlan();
 	$rateplan->AmendmentId = $amendmentId;
 	$rateplan->AmendmentType = 'RemoveProduct';
 
@@ -551,7 +551,7 @@ function removeProductAmendment($instance,$ratePlanId,$subscriptionId){
 	
 	$instance->create(array($rateplan));
 	
-	$amendment = new Zuora_Amendment();
+	$amendment = new Zuora\Soap\Amendment();
 	$amendment->Id = $amendmentId;
 	$amendment->ContractEffectiveDate = $date;
 	
@@ -564,7 +564,7 @@ function removeProductAmendment($instance,$ratePlanId,$subscriptionId){
 function cancelSubscriptionAmendment($instance,$subscriptionId){
 	$date = date('Y-m-d\TH:i:s');
 	
-	$amendment = new Zuora_Amendment();
+	$amendment = new Zuora\Soap\Amendment();
 	$amendment->EffectiveDate = $date;
 	$amendment->Name = 'cancel' . time();
 	$amendment->Status = 'Draft';
@@ -575,7 +575,7 @@ function cancelSubscriptionAmendment($instance,$subscriptionId){
 	
 	$amendmentId = $result -> result -> Id;	
 	
-	$amendment = new Zuora_Amendment();
+	$amendment = new Zuora\Soap\Amendment();
 	$amendment->Id = $amendmentId;
 	$amendment->ContractEffectiveDate = $date;
 	
